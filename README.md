@@ -1,4 +1,4 @@
-# hi-template
+# template
 
 ## Install
   1. Live Server
