@@ -1,0 +1,415 @@
+// add event on multiple element
+
+const addEventOnElements = function (elements, eventType, callback) {
+  if (elements) {
+    for (let i = 0; i < elements.length; i++) {
+      elements[i].addEventListener(eventType, callback);
+    }
+  }
+};
+
+/* --------------------------- resize mobile 100vh -------------------------- */
+
+const appHeight = function () {
+  const doc = document.documentElement;
+  doc.style.setProperty(
+    "--app-height",
+    `${document.documentElement.clientHeight}px`
+  );
+};
+window.addEventListener("resize", appHeight);
+appHeight();
+
+/* ------------------------------ fadeout page ------------------------------ */
+
+["pageshow", "load"].forEach(function (evt) {
+  window.addEventListener(evt, function () {
+    document.body.classList.remove("fadeout");
+  });
+});
+
+$(document).on("click", 'a[href^="#"]', function (e) {
+  e.preventDefault();
+});
+
+$(document).on(
+  "click",
+  'a:not([href^="#"]):not([target]):not([href^="mailto"])',
+  function (e) {
+    e.preventDefault();
+    const url = $(this).attr("href");
+
+    if (url !== "") {
+      const idx = url.indexOf("#");
+      const hash = idx != -1 ? url.substring(idx) : "";
+
+      if ($(hash).length > 0) {
+        $("html, body").animate(
+          {
+            scrollTop: $(hash).offset().top,
+          },
+          300
+        );
+        return false;
+      }
+
+      $("body").addClass("fadeout");
+      setTimeout(function () {
+        window.location = url;
+      }, 600);
+    }
+    return false;
+  }
+);
+
+/* ------------------------------ toggler text ------------------------------ */
+
+const [indexTogglers, index] = [
+  document.querySelectorAll("[data-index-toggler]"),
+  document.querySelector("[data-index]"),
+];
+
+const toggleIndex = function () {
+  index.classList.toggle("toggle");
+  document.body.classList.toggle("active");
+};
+
+addEventOnElements(indexTogglers, "click", toggleIndex);
+
+/* ------------------------------ scroll to top ----------------------------- */
+
+const scrollTop = document.querySelector(".c-footer__backtotop");
+
+if (scrollTop) {
+  scrollTop.addEventListener("click", function () {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  });
+}
+
+/* ------------------------------- tabs switch ------------------------------ */
+
+$(document).on("click", ".tab-link", function () {
+  let tabID = $(this).attr("data-tab");
+
+  $(this).addClass("active").siblings().removeClass("active");
+  $("#tab-" + tabID)
+    .addClass("active")
+    .siblings()
+    .removeClass("active");
+});
+
+/* ---------------------- catch select href not working --------------------- */
+
+$(function () {
+  let isIOS =
+    (/iPad|iPhone|iPod/.test(navigator.platform) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)) &&
+    !window.MSStream;
+  if (isIOS) {
+    $("a").on("click touchend", function () {
+      let link = $(this).attr("href");
+      let target = $(this).attr("target");
+      if (target === "_blank") {
+        window.open(link, "blank"); // opens in new window as requested
+        return false; // prevent anchor click
+      }
+    });
+  }
+});
+
+/* ------------------------------ INSTAGRAM API ----------------------------- */
+const instagram = document.querySelector("#instagram");
+const idBusinessAccount = "17841455986994937";
+const token =
+  "EAASrkJ9GqDwBADr6SPxw7HG9fZBWeHZARDhGumAGuvwDb5RUgq4s41MaVaZBawuspevFqZCoUFiRlSIbjLxYuxfsNJZAr9hNjcvwNJsMpFiLCf4ZBc8tiBHJzwSu6AxoUKeVQfGuFL5nQl0Cj7WCNwbplFwzZBqxombXQyTcsI5cwyGMeS23el7e8MbuAmq0fIZD";
+const fields =
+  "id,media_type,media_url,thumbnail_url,timestamp,permalink,caption";
+const limit = 5;
+
+const fetchData = async () => {
+  try {
+    const res = await fetch(
+      "https://graph.facebook.com/v15.0/" +
+        idBusinessAccount +
+        "/media?fields=" +
+        fields +
+        "&access_token=" +
+        token +
+        "&limit=" +
+        limit
+    );
+
+    if (res.status === 200) {
+      const jsonResult = await res.json();
+      // console.log("jsonResult", jsonResult);
+      jsonResult.data.forEach((e) => {
+        let render = `
+          <div class="swiper-slide">
+            <a class="p-news__items" href="${e.permalink}" target="_blank">
+              <img src="${
+                e.media_type == "VIDEO" ? e.thumbnail_url : e.media_url
+              }" alt="">
+              <p>
+                ${e.caption.substring(0, 100)}
+              </p>
+            </a>
+          </div>
+        `;
+        instagram.insertAdjacentHTML("beforeend", render);
+      });
+    } else {
+      let render = `
+        <div class="p-news__404">
+          <p>User Not Found</p>
+        </div>
+      `;
+      instagram.insertAdjacentHTML("beforeend", render);
+    }
+  } catch (error) {
+    console.warn("error", error);
+  }
+};
+
+/* ---------------------------- MENU SHOW/HIDDEN ---------------------------- */
+const navMenu = document.getElementById("nav-menu"),
+  navToggle = document.querySelector(".c-header__hamburger");
+
+navToggle.addEventListener("click", function () {
+  navToggle.classList.toggle("active");
+  navMenu.classList.toggle("active");
+});
+//  catch case open menu in mobile, and resize window > desktop
+window.addEventListener("resize", function () {
+  if (window.innerWidth < 768) {
+    navMenu.classList.remove("active");
+    navToggle.classList.remove("active");
+  }
+});
+
+/*=============== REMOVE MENU MOBILE ===============*/
+const navLink = document.querySelectorAll(".c-header__link");
+function linkAction() {
+  // When we click on each menu link, we remove the show-menu class
+  navMenu.classList.remove("active");
+  navToggle.classList.remove("active");
+}
+navLink.forEach((n) => n.addEventListener("click", linkAction));
+
+$(document).ready(function () {
+  /* ----------------------------- REMOVE ANCHOR URL ---------------------------- */
+  $('a[href^="#"]').click(function () {
+    const speed = 100;
+    let href = $(this).attr("href");
+    let target = $(href == "#" || href == "" ? "html" : href);
+    $("html, body").animate(
+      {
+        scrollTop: target.offset().top,
+      },
+      speed,
+      "swing"
+    );
+    return false;
+  });
+
+  /* ------------------------------- SCROLL FADE ------------------------------ */
+  $(window).scroll(function () {
+    var scrollTop = $(window).scrollTop();
+    var bottom = scrollTop + $(window).height();
+    $(".in-view").each(function () {
+      if (bottom > $(this).offset().top + 100) {
+        $(this).addClass("is-active");
+      } else {
+        $(this).removeClass("is-active");
+      }
+    });
+  });
+});
+
+/* ------------------------------ LOADING PAGE ------------------------------ */
+$(window).on("load", function () {
+  $("body").addClass("is-disabled");
+  setTimeout(() => {
+    $(".c-loading__logo").fadeIn("slow");
+  }, 800);
+  setTimeout(() => {
+    $(".c-loading__logo").addClass("is-loading");
+  }, 3600);
+  setTimeout(() => {
+    $(".c-loading").css("backgroundColor", "transparent");
+    $(".c-loading").fadeOut();
+    setTimeout(() => {
+      $("body").removeClass("is-disabled");
+    }, 800);
+  }, 3600);
+});
+
+/* ----------------------------- render feature ----------------------------- */
+
+const featureList = document.querySelector("#feature-list");
+const swiperWrapper = document.querySelector(".swiper-wrapper");
+
+const featureFunc = (data, query) => {
+  const checkRadius = data.borderRadius ? "radius-300" : "";
+
+  let feature = `
+        <div class="swiper-slide">
+            <div class="p-feature__item">
+                <div class="p-feature__figure">
+                    <img src="${data.image}" alt="${data.name}"
+                        class="p-feature__img ${checkRadius}" loading="lazy">
+                    <p>${data.title}</p>
+                </div>
+                <div class="p-feature__content">
+                <h3 class="p-feauture__name">${data.name}</h3>
+                    <p class="p-feature__desc">
+                    ${data.description}
+                    </p>
+                </div>
+            </div>
+        </div>
+      `;
+  query.insertAdjacentHTML("beforeend", feature);
+};
+
+const renderFeaturePC = (data) => {
+  data.forEach((item) => {
+    featureFunc(item, featureList);
+  });
+};
+
+const renderFeatureSP = (data) => {
+  const sortData = data.sort((a, b) => (a.order > b.order ? 1 : -1));
+  sortData.forEach((item) => {
+    featureFunc(item, swiperWrapper);
+  });
+};
+
+renderFeaturePC(featureData);
+renderFeatureSP(featureData);
+
+/* ----- replace the regular action with a scrolling to target on click ----- */
+const links = document.querySelectorAll(".c-header__link");
+
+Array.prototype.forEach.call(links, function (elem, index) {
+  const elemAttr = elem.getAttribute("href");
+  if (elemAttr && elemAttr.includes("#")) {
+    elem.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      document.getElementById(elemAttr.replace(/#/g, "")).scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+        inline: "nearest",
+      });
+    });
+  }
+});
+
+/* --------------------------------- swiper --------------------------------- */
+/* ------------------------------- work swiper ------------------------------ */
+
+const deactiveButton = () => {
+    if ($(".button-swiper").hasClass("swiper-button-disabled")) {
+      $(".button-swiper").removeClass("swiper-button-disabled");
+      $(".button-swiper").attr("aria-disabled", "false");
+      $(".button-swiper").removeAttr("disabled");
+    }
+  };
+  
+  const swiperWorkFunction = () => {
+    if (document.getElementById("work-swiper")) {
+      const swiper = new Swiper("#work-swiper", {
+        navigation: {
+          nextEl: ".swiper-button-next",
+          prevEl: ".swiper-button-prev",
+        },
+        speed: 600,
+        // initialSlide: 1,
+        centeredSlides: true,
+        loop: true,
+        breakpoints: {
+          0: {
+            spaceBetween: 30,
+            allowTouchMove: true,
+            slidesPerView: 1,
+          },
+          835: {
+            spaceBetween: 200,
+            allowTouchMove: false,
+            slidesPerView: 1.58,
+          },
+        },
+        on: {
+          slideChange: function () {
+            let currentSlide = this.realIndex + 1;
+            document.querySelector(".current-slide").innerHTML =
+              "( " + currentSlide;
+          },
+          beforeInit: function () {
+            let numOfSlides =
+              this.wrapperEl.querySelectorAll(".swiper-slide").length;
+  
+            // if (numOfSlides > 2) {
+            //   document.querySelector(".current-slide").innerHTML = "( " + "2";
+            // }
+            document.querySelector(".total-slides").innerHTML =
+              numOfSlides + " )";
+  
+            let swiper = this;
+            setTimeout(function () {
+              let currentTitle = $(swiper.slides[swiper.activeIndex]).attr(
+                "data-title"
+              );
+              let title = currentTitle != undefined ? currentTitle : "";
+  
+              $(".p-work__swiper .caption").html(function () {
+                return "<h2>" + title + "</h2>";
+              });
+            }, 500);
+          },
+          slideChangeTransitionStart: function () {
+            // Slide captions
+            let swiper = this;
+            setTimeout(function () {
+              let currentTitle = $(swiper.slides[swiper.activeIndex]).attr(
+                "data-title"
+              );
+            }, 500);
+            // gsap.to($(".p-work__swiper .caption h2"), 0.6, {
+            //   opacity: 0,
+            //   delay: 0.1,
+            //   ease: Power1.linear,
+            // });
+          },
+          slideChangeTransitionEnd: function () {
+            // Slide captions
+            let swiper = this;
+            let currentTitle = $(swiper.slides[swiper.activeIndex]).attr(
+              "data-title"
+            );
+            $(".p-work__swiper .caption").html(function () {
+              return "<h2>" + currentTitle + "</h2>";
+            });
+            // gsap.from($(".p-work__swiper .caption h2"), 0.6, {
+            //   opacity: 0,
+            //   delay: 0.1,
+            //   ease: Power1.linear,
+            // });
+          },
+        },
+      });
+  
+      // deactive button control
+      deactiveButton();
+      swiper.on("slideNextTransitionStart", function () {
+        deactiveButton();
+      });
+      swiper.on("slidePrevTransitionStart", function () {
+        deactiveButton();
+      });
+    }
+  };
+  
+  swiperWorkFunction();
