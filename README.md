@@ -6,10 +6,10 @@
   3. Minify (HookyQR)
 
 ## Compress SCSS
-  1. Open file settings.json in vscode
-  2. Click Watch SASS
+  Step 1# Open file settings.json in vscode
+  Step 2# Click Watch SASS
   
 ## Compress JS/CSS
-  1. Open file JS/CSS
-  2. Ctrl + Shift + P typing Minify
+  Step 1# Open file JS/CSS
+  Step 2# Ctrl + Shift + P typing Minify
   
